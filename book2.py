@@ -1,5 +1,9 @@
 import requests
 from bs4 import BeautifulSoup
+from PIL import Image, ImageDraw, ImageFont
+
+# 存储所有已保存的书目
+savedBooks = []
 
 keyword = input('请输入关键字：')
 encodedKeyword = keyword.encode('utf-8')
@@ -85,6 +89,7 @@ print(f'Title: {selectedBook["Title"]}')
 print(f'Author: {selectedBook["Author"]}')
 print(f'Source: {selectedBook["Source"]}')
 print(f'ISBN: {selectedBook["ISBN"]}')
+print('------------------------')
 print('Holding List:')
 for i, (location, statusDict) in enumerate(selectedBook['Holding List'].items()):
     print(f'{i+1}. 位置: {location}')
@@ -93,3 +98,27 @@ for i, (location, statusDict) in enumerate(selectedBook['Holding List'].items())
         print(f'状态: {status}: {barcodeDict["count"]} 本')
         print(f'条码: {", ".join(barcodeDict["barcodes"])}')
     print('------------------------')
+
+bookStr = f'书名：{selectedBook["Title"]}\n作者：{selectedBook["Author"]}\n出处：{selectedBook["Source"]}\nISBN：{selectedBook["ISBN"]}\n'
+for i, (location, statusDict) in enumerate(selectedBook['Holding List'].items()):
+    for status, barcodeDict in statusDict.items():
+        count = barcodeDict['count']
+        barcodes = ', '.join(barcodeDict['barcodes'])
+        callno = ', '.join(barcodeDict['callNumber'])
+bookStr += f'馆藏地：{location}\n状态：{status}   数量：{count}\n索书号：{callno}\n'
+if bookStr not in savedBooks:
+    savedBooks.append(bookStr)
+
+    # 打印书目字符串
+    print(bookStr)
+
+    # 创建图片
+    img = Image.new('RGB', (800, 600), color=(255, 255, 255))
+    draw = ImageDraw.Draw(img)
+    font = ImageFont.truetype('/System/Library/Fonts/STHeiti Light.ttc', 36)
+
+    # 将书目字符串绘制在图片上
+    draw.text((50, 50), bookStr, font=font, fill=(0, 0, 0))
+
+    # 保存图片
+    img.save(f'{title}.jpg')
